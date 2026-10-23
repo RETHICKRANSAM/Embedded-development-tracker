@@ -1,0 +1,194 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id               String               @id @default(uuid())
+  name             String
+  description      String?
+  projectCode      String               @unique
+  category         String?
+  hardwarePlatform String?
+  mcu              String?
+  ide              String?
+  language         String?
+  rtos             String?
+  repositoryUrl    String?
+  status           String               @default("Active") // Active, On Hold, Completed, Archived
+  startDate        DateTime?
+  targetDate       DateTime?
+  currentPhaseId   String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  phases             Phase[]
+  tasks              Task[]
+  phaseChecklistItems PhaseChecklistItem[]
+  notes              Note[]
+  releaseGates       ReleaseGate[]
+  attachments        Attachment[]
+}
+
+model Phase {
+  id          String    @id @default(uuid())
+  projectId   String
+  name        String
+  description String?
+  sequence    Int
+  status      String    @default("Not Started") // Not Started, In Progress, Blocked, Completed
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks          Task[]
+  checklistItems PhaseChecklistItem[]
+  notes          Note[]
+  attachments    Attachment[]
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  projectId   String
+  phaseId     String
+  title       String
+  description String?
+  status      String    @default("To Do") // To Do, In Progress, Pending, Blocked, Done
+  priority    String    @default("Medium") // Low, Medium, High, Critical
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  project        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          Phase               @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  checklistItems TaskChecklistItem[]
+  attachments    Attachment[]
+}
+
+model TaskChecklistItem {
+  id          String    @id @default(uuid())
+  taskId      String
+  title       String
+  isCompleted Boolean   @default(false)
+  sequence    Int       @default(0)
+  completedAt DateTime?
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model PhaseChecklistItem {
+  id          String   @id @default(uuid())
+  projectId   String
+  phaseId     String
+  title       String
+  description String?
+  status      String   @default("Pending") // Pending, Passed, Failed, Blocked, Skipped
+  sequence    Int      @default(0)
+  isMandatory Boolean  @default(true)
+  notes       String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase   Phase   @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  projectId String
+  phaseId   String?
+  title     String
+  content   String
+  category  String   @default("General") // Technical Decision, Debugging, Hardware, Firmware, Testing, Bug, Reference, General
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase       Phase?       @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  attachments Attachment[]
+}
+
+model ReleaseGate {
+  id               String    @id @default(uuid())
+  projectId        String
+  name             String
+  gateType         String    // DEMO, PILOT, PRODUCTION
+  status           String    @default("Not Started") // Not Started, In Progress, Blocked, Ready for Review, Passed
+  firmwareVersion  String?
+  hardwareRevision String?
+  reviewNote       String?
+  passedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  project Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items   ReleaseGateItem[]
+  history GateHistory[]
+}
+
+model ReleaseGateItem {
+  id          String   @id @default(uuid())
+  gateId      String
+  title       String
+  description String?
+  isMandatory Boolean  @default(true)
+  status      String   @default("Pending") // Pending, Passed, Failed, Blocked, Skipped
+  notes       String?
+  sequence    Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  gate        ReleaseGate   @relation(fields: [gateId], references: [id], onDelete: Cascade)
+  failures    GateFailure[]
+  attachments Attachment[]
+}
+
+model GateFailure {
+  id               String    @id @default(uuid())
+  gateItemId       String
+  description      String
+  expectedBehavior String?
+  actualBehavior   String?
+  correctiveAction String?
+  retestResult     String?
+  status           String    @default("Failed") // Failed, Fixed, Verified
+  createdAt        DateTime  @default(now())
+  resolvedAt       DateTime?
+
+  gateItem ReleaseGateItem @relation(fields: [gateItemId], references: [id], onDelete: Cascade)
+}
+
+model GateHistory {
+  id               String   @id @default(uuid())
+  gateId           String
+  eventType        String   // PASSED, REOPENED, REVIEWED, REVISION_CHANGED, STATUS_CHANGE
+  details          String?
+  firmwareVersion  String?
+  hardwareRevision String?
+  createdAt        DateTime @default(now())
+
+  gate ReleaseGate @relation(fields: [gateId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  fileName   String
+  fileUrl    String
+  fileType   String
+  fileSize   Int
+  projectId  String?
+  phaseId    String?
+  taskId     String?
+  gateItemId String?
+  noteId     String?
+  createdAt  DateTime @default(now())
+
+  project  Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase    Phase?            @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  task     Task?             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  gateItem ReleaseGateItem?  @relation(fields: [gateItemId], references: [id], onDelete: Cascade)
+  note     Note?             @relation(fields: [noteId], references: [id], onDelete: Cascade)
+}

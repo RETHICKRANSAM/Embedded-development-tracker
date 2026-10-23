@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
-import { apiService } from "@/lib/api-service";
+import { apiService, resolveApiUrl } from "@/lib/api-service";
 import { StatusPill } from "@/components/monday/status-pill";
 import { StatusBatteryBar } from "@/components/monday/status-battery-bar";
 import { MondayTabs } from "@/components/monday/monday-tabs";
@@ -182,7 +182,7 @@ export default function ReleaseGatesPage() {
     if (!activeGate || !newItemTitle.trim()) return;
 
     try {
-      const res = await fetch(`/api/gates/${activeGate.id}/items`, {
+      const res = await fetch(resolveApiUrl(`/api/gates/${activeGate.id}/items`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

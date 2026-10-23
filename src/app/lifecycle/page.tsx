@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
-import { apiService } from "@/lib/api-service";
+import { apiService, resolveApiUrl } from "@/lib/api-service";
 import { StatusPill } from "@/components/monday/status-pill";
 import { PriorityPill } from "@/components/monday/priority-pill";
 import { StatusBatteryBar } from "@/components/monday/status-battery-bar";
@@ -235,7 +235,7 @@ export default function LifecyclePage() {
     if (!newPhaseName.trim() || !selectedProjectId) return;
 
     try {
-      const res = await fetch(`/api/projects/${selectedProjectId}/phases`, {
+      const res = await fetch(resolveApiUrl(`/api/projects/${selectedProjectId}/phases`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

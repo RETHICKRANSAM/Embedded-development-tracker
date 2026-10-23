@@ -7,11 +7,22 @@ export interface ApiResponse<T = any> {
   status: number;
 }
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+
+export function resolveApiUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${cleanPath}`;
+}
+
 async function request<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
-  const res = await fetch(url, {
+  const fullUrl = resolveApiUrl(url);
+  const res = await fetch(fullUrl, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -228,12 +239,17 @@ export const apiService = {
 
   // Backup & Export
   backup: {
-    downloadDbUrl: "/api/backup?action=download",
-    exportJsonUrl: "/api/backup?action=export_json",
+    downloadDbUrl: resolveApiUrl("/api/backup?action=download"),
+    exportJsonUrl: resolveApiUrl("/api/backup?action=export_json"),
+    restore: (projectsData: any[]) =>
+      request<{ success: boolean; restoredCount: number }>("/api/backup", {
+        method: "POST",
+        body: JSON.stringify(projectsData),
+      }),
     exportData: (format: "json" | "csv", type: "project" | "gates" | "tasks", projectId?: string) => {
       const sp = new URLSearchParams({ format, type });
       if (projectId) sp.set("projectId", projectId);
-      return `/api/export?${sp.toString()}`;
+      return resolveApiUrl(`/api/export?${sp.toString()}`);
     },
   },
 };

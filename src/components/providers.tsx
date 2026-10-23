@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+import { apiService } from "@/lib/api-service";
+
 type Theme = "dark" | "light";
 
 interface ProjectContextType {
@@ -69,17 +71,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch("/api/projects");
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
-        if (data.length > 0 && !selectedProjectId) {
-          const saved = localStorage.getItem("edt_active_project");
-          if (saved && data.some((p: any) => p.id === saved)) {
-            setSelectedProjectId(saved);
-          } else {
-            setSelectedProjectId(data[0].id);
-          }
+      const data = await apiService.projects.list();
+      setProjects(data);
+      if (data && data.length > 0 && !selectedProjectId) {
+        const saved = localStorage.getItem("edt_active_project");
+        if (saved && data.some((p: any) => p.id === saved)) {
+          setSelectedProjectId(saved);
+        } else {
+          setSelectedProjectId(data[0].id);
         }
       }
     } catch (err) {

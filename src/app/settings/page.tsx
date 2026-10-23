@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useProject, useTheme } from "@/components/providers";
+import { apiService, resolveApiUrl } from "@/lib/api-service";
 
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
@@ -36,19 +37,9 @@ export default function SettingsPage() {
       const parsed = JSON.parse(text);
 
       const payload = Array.isArray(parsed) ? parsed : [parsed];
+      const data = await apiService.backup.restore(payload);
 
-      const res = await fetch("/api/backup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to restore backup.");
-      }
-
-      setImportResult(`Successfully imported ${data.restoredCount} project(s) into local SQLite!`);
+      setImportResult(`Successfully imported ${data.restoredCount} project(s)!`);
       refreshProjects();
     } catch (err: any) {
       setImportResult(`Import failed: ${err.message}`);
@@ -108,7 +99,7 @@ export default function SettingsPage() {
 
           <div className="pt-1 flex flex-col sm:flex-row gap-2.5">
             <a
-              href="/api/backup"
+              href={resolveApiUrl("/api/backup")}
               download
               className="btn-primary flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-md shadow-xs transition-all active:scale-98 cursor-pointer"
             >
@@ -150,7 +141,7 @@ export default function SettingsPage() {
 
           <div className="space-y-2 pt-1">
             <a
-              href="/api/export"
+              href={resolveApiUrl("/api/export")}
               download
               className="w-full flex items-center justify-between p-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:border-black dark:hover:border-white transition-colors cursor-pointer"
             >
@@ -162,7 +153,7 @@ export default function SettingsPage() {
             </a>
 
             <a
-              href="/api/export?format=csv_gates"
+              href={resolveApiUrl("/api/export?format=csv_gates")}
               download
               className="w-full flex items-center justify-between p-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:border-black dark:hover:border-white transition-colors cursor-pointer"
             >

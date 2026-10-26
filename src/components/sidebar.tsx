@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Database,
+  Eye,
 } from "lucide-react";
 
 const navigationItems = [
@@ -28,6 +29,16 @@ const navigationItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+
+  useEffect(() => {
+    // Detect demo mode: on static hosts (not localhost) with no API URL
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+    const host = window.location.hostname;
+    if (!apiBase && host !== "localhost" && host !== "127.0.0.1") {
+      setIsDemo(true);
+    }
+  }, []);
 
   return (
     <aside
@@ -108,22 +119,26 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* Footer Offline Database Indicator */}
+      {/* Footer: Database / Demo Mode Indicator */}
       <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
         {!isCollapsed ? (
           <div className="flex items-center justify-between px-2 py-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
             <span className="flex items-center gap-1.5">
-              <Database className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
-              <span>SQLite dev.db</span>
+              {isDemo ? (
+                <Eye className="w-3.5 h-3.5 text-amber-500" />
+              ) : (
+                <Database className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
+              )}
+              <span>{isDemo ? "Demo Mode" : "SQLite dev.db"}</span>
             </span>
             <span className="flex items-center gap-1 text-[10px] text-zinc-800 dark:text-zinc-200 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-900 dark:bg-zinc-100" />
-              Offline
+              <span className={`w-1.5 h-1.5 rounded-full ${isDemo ? "bg-amber-500" : "bg-zinc-900 dark:bg-zinc-100"}`} />
+              {isDemo ? "Read-only" : "Offline"}
             </span>
           </div>
         ) : (
-          <div className="flex justify-center py-1" title="SQLite dev.db Connected (Offline)">
-            <span className="w-2 h-2 rounded-full bg-zinc-900 dark:bg-zinc-100" />
+          <div className="flex justify-center py-1" title={isDemo ? "Demo Mode (Read-only)" : "SQLite dev.db Connected (Offline)"}>
+            <span className={`w-2 h-2 rounded-full ${isDemo ? "bg-amber-500" : "bg-zinc-900 dark:bg-zinc-100"}`} />
           </div>
         )}
       </div>

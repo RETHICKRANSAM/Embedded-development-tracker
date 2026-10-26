@@ -1,0 +1,28 @@
+1:"$Sreact.fragment"
+2:"/Embedded-development-tracker/_next/static/chunks/0umf92h1sb77c.js"
+3:"/Embedded-development-tracker/_next/static/chunks/10uddk9t-vvi9.js"
+4:I[85266,["$2","$3"],"Providers"]
+5:I[29014,["$2","$3"],"Sidebar"]
+6:I[29556,["$2","$3"],"Topbar"]
+7:I[39756,["$2","$3"],"default"]
+8:I[37457,["$2","$3"],"default"]
+9:I[5470,["$2","$3"],"NotesDrawer"]
+b:I[47257,["$2","$3"],"ClientPageRoot"]
+c:"/Embedded-development-tracker/_next/static/chunks/03avv_cn09cd2.js"
+d:I[52683,["$2","$3","$c"],"default"]
+10:I[97367,["$2","$3"],"OutletBoundary"]
+11:"$Sreact.suspense"
+13:"ViewportBoundary"
+14:I[97367,["$2","$3"],"$13"]
+16:"MetadataBoundary"
+17:I[97367,["$2","$3"],"$16"]
+19:I[68027,["$2","$3"],"default",1]
+:HL["/Embedded-development-tracker/_next/static/chunks/3iwsu9tff865m.css","style"]
+a:[["children",{"s":"__PAGE__","h":512,"d":{"r":["$","$1","c",{"children":[["$","$Lb",null,{"Component":"$d","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@e","$@f"]}}],[["$","script","script-0",{"src":"/Embedded-development-tracker/_next/static/chunks/03avv_cn09cd2.js","async":true,"nonce":"$undefined"}]],["$","$L10",null,{"children":["$","$11",null,{"name":"Next.MetadataOutlet","children":"$@12"}]}]]}],"p":false,"v":null}}]]
+0:{"P":null,"c":["",""],"q":"","i":false,"t":{"t":{"s":"","h":528,"d":{"r":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/Embedded-development-tracker/_next/static/chunks/3iwsu9tff865m.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}],["$","script","script-0",{"src":"/Embedded-development-tracker/_next/static/chunks/0umf92h1sb77c.js","async":true,"nonce":"$undefined"}],["$","script","script-1",{"src":"/Embedded-development-tracker/_next/static/chunks/10uddk9t-vvi9.js","async":true,"nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"h-full antialiased dark","suppressHydrationWarning":true,"children":["$","body",null,{"className":"h-full bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex overflow-hidden","children":["$","$L4",null,{"children":["$","div",null,{"className":"flex w-full h-full","children":[["$","$L5",null,{}],["$","div",null,{"className":"flex-1 flex flex-col h-full min-w-0 overflow-hidden","children":[["$","$L6",null,{}],["$","main",null,{"className":"flex-1 overflow-y-auto min-w-0 bg-slate-50 dark:bg-[#090d16]","children":["$","$L7",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L8",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]]}],["$","$L9",null,{}]]}]}]}]}]]}],"p":false,"v":null},"c":"$Qa"},"h":{"r":["$","$1","h",{"children":[null,["$","$L14",null,{"children":"$L15"}],["$","$L17",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$11",null,{"name":"Next.Metadata","children":"$L18"}]}],null]}],null]}],"p":false,"v":null}},"m":"$undefined","G":["$19",[["$","link","0",{"rel":"stylesheet","href":"/Embedded-development-tracker/_next/static/chunks/3iwsu9tff865m.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]]],"S":true,"r":"$undefined","s":"$undefined","a":"$undefined","l":"$undefined","p":"$undefined","d":"$undefined","b":"fjiS34H1_V8z8fpjNVFN6"}
+e:{}
+f:"$a:0:1:d:r:props:children:0:props:serverProvidedParams:params"
+15:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+1a:I[27201,["$2","$3"],"IconMark"]
+12:null
+18:[["$","title","0",{"children":"Embedded Dev Tracker | Personal Engineering Suite"}],["$","meta","1",{"name":"description","content":"Personal development lifecycle, daily engineering tasks, phase checklists, technical notes, and product release gates."}],["$","link","2",{"rel":"icon","href":"/Embedded-development-tracker/favicon.ico?favicon.117ezoe8m31dk.ico","sizes":"48x48","type":"image/x-icon"}],["$","$L1a","3",{}]]

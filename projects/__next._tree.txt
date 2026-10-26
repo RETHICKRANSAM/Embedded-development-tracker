@@ -1,0 +1,4 @@
+:HL["/Embedded-development-tracker/_next/static/chunks/3iwsu9tff865m.css","style"]
+2:[["children",{"s":"__PAGE__","h":160}]]
+1:[["children",{"s":"projects","h":96,"c":"$Q2"}]]
+0:{"b":"fjiS34H1_V8z8fpjNVFN6","t":{"t":{"s":"","h":80,"c":"$Q1"}}}

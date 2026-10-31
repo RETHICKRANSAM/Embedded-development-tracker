@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: isExport,
   },
+  experimental: {
+    agentUpgrade: "security",
+  },
 };
 
 export default nextConfig;

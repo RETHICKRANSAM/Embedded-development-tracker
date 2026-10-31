@@ -5,15 +5,23 @@ import { execSync } from "node:child_process";
 const rootDir = process.cwd();
 const apiDir = path.join(rootDir, "src", "app", "api");
 const tempApiDir = path.join(rootDir, "src", "app", "_api_server");
+const middlewarePath = path.join(rootDir, "src", "middleware.ts");
+const tempMiddlewarePath = path.join(rootDir, "src", "_middleware.ts.bak");
 const outDir = path.join(rootDir, "out");
 
-let moved = false;
+let apiMoved = false;
+let middlewareMoved = false;
 
 try {
   if (fs.existsSync(apiDir)) {
     console.log("Temporarily opting API routes out of static routing during export...");
     fs.renameSync(apiDir, tempApiDir);
-    moved = true;
+    apiMoved = true;
+  }
+  if (fs.existsSync(middlewarePath)) {
+    console.log("Temporarily opting middleware out of static routing during export...");
+    fs.renameSync(middlewarePath, tempMiddlewarePath);
+    middlewareMoved = true;
   }
 
   console.log("Running Next.js static export build...");
@@ -32,8 +40,12 @@ try {
     console.log("Created out/.nojekyll for GitHub Pages asset compatibility.");
   }
 } finally {
-  if (moved && fs.existsSync(tempApiDir)) {
+  if (apiMoved && fs.existsSync(tempApiDir)) {
     console.log("Restoring src/app/api route handlers...");
     fs.renameSync(tempApiDir, apiDir);
+  }
+  if (middlewareMoved && fs.existsSync(tempMiddlewarePath)) {
+    console.log("Restoring src/middleware.ts...");
+    fs.renameSync(tempMiddlewarePath, middlewarePath);
   }
 }

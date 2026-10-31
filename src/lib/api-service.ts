@@ -1,5 +1,6 @@
 // Centralized API Service Layer for Embedded Dev Tracker
 // Connects frontend to existing Next.js App Router API endpoints
+// Supports API Key authentication (x-api-key & Authorization: Bearer <key>)
 // Falls back to demo data when running as a static export (GitHub Pages)
 
 import { demoApi } from "./demo-data";
@@ -10,21 +11,74 @@ export interface ApiResponse<T = any> {
   status: number;
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+export const STORAGE_KEY_API_URL = "embedded_dev_api_url";
+export const STORAGE_KEY_API_KEY = "embedded_dev_api_key";
+export const STORAGE_KEY_FORCE_MODE = "embedded_dev_force_mode"; // 'auto' | 'demo' | 'live'
+
+/** Get currently configured backend API URL from localStorage or NEXT_PUBLIC_API_URL */
+export function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(STORAGE_KEY_API_URL);
+    if (stored !== null && stored.trim() !== "") {
+      return stored.trim().replace(/\/+$/, "");
+    }
+  }
+  return (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+}
+
+/** Set or clear the custom backend API URL in localStorage */
+export function setApiBaseUrl(url: string | null): void {
+  if (typeof window === "undefined") return;
+  if (!url || url.trim() === "") {
+    localStorage.removeItem(STORAGE_KEY_API_URL);
+  } else {
+    localStorage.setItem(STORAGE_KEY_API_URL, url.trim().replace(/\/+$/, ""));
+  }
+}
+
+/** Get currently configured API Key from localStorage or NEXT_PUBLIC_API_KEY */
+export function getApiKey(): string {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(STORAGE_KEY_API_KEY);
+    if (stored !== null && stored.trim() !== "") {
+      return stored.trim();
+    }
+  }
+  return (process.env.NEXT_PUBLIC_API_KEY || "").trim();
+}
+
+/** Set or clear the API Key in localStorage */
+export function setApiKey(key: string | null): void {
+  if (typeof window === "undefined") return;
+  if (!key || key.trim() === "") {
+    localStorage.removeItem(STORAGE_KEY_API_KEY);
+  } else {
+    localStorage.setItem(STORAGE_KEY_API_KEY, key.trim());
+  }
+}
 
 /**
  * Detect whether we are running in static/demo mode.
  * Static mode is active when there is no API base URL configured AND
  * we are not running on localhost (i.e. we are on GitHub Pages or a static host).
  */
-function isStaticMode(): boolean {
+export function isStaticMode(): boolean {
   if (typeof window === "undefined") return false;
-  // If an explicit API URL is configured, always use the real API
-  if (API_BASE) return false;
+
+  // Check manual override
+  const forceMode = localStorage.getItem(STORAGE_KEY_FORCE_MODE);
+  if (forceMode === "demo") return true;
+  if (forceMode === "live") return false;
+
+  // If an explicit API base URL is configured, use the live API
+  const apiBase = getApiBaseUrl();
+  if (apiBase) return false;
+
   // On localhost with a dev server, the API routes are available
   const host = window.location.hostname;
   if (host === "localhost" || host === "127.0.0.1") return false;
-  // Otherwise we're on a static host (e.g. GitHub Pages)
+
+  // Otherwise we're on a static host (e.g. GitHub Pages) without a configured backend
   return true;
 }
 
@@ -32,12 +86,25 @@ function isStaticMode(): boolean {
 export const IS_DEMO_MODE =
   typeof window !== "undefined" ? isStaticMode() : false;
 
-export function resolveApiUrl(path: string): string {
+export function resolveApiUrl(path: string, includeApiKey = false): string {
+  let resolvedUrl: string;
   if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
+    resolvedUrl = path;
+  } else {
+    const apiBase = getApiBaseUrl();
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    resolvedUrl = `${apiBase}${cleanPath}`;
   }
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  return `${API_BASE}${cleanPath}`;
+
+  if (includeApiKey) {
+    const key = getApiKey();
+    if (key) {
+      const separator = resolvedUrl.includes("?") ? "&" : "?";
+      resolvedUrl = `${resolvedUrl}${separator}apiKey=${encodeURIComponent(key)}`;
+    }
+  }
+
+  return resolvedUrl;
 }
 
 async function request<T>(
@@ -45,12 +112,22 @@ async function request<T>(
   options?: RequestInit
 ): Promise<T> {
   const fullUrl = resolveApiUrl(url);
+  const apiKey = getApiKey();
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((options?.headers as Record<string, string>) || {}),
+  };
+
+  // Attach API Key via both x-api-key header and Authorization Bearer header
+  if (apiKey) {
+    headers["x-api-key"] = apiKey;
+    headers["Authorization"] = `Bearer ${apiKey}`;
+  }
+
   const res = await fetch(fullUrl, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options?.headers || {}),
-    },
+    headers,
   });
 
   if (!res.ok) {
@@ -362,10 +439,10 @@ export const apiService = {
   // Backup & Export
   backup: {
     get downloadDbUrl() {
-      return isStaticMode() ? "#" : resolveApiUrl("/api/backup?action=download");
+      return isStaticMode() ? "#" : resolveApiUrl("/api/backup?action=download", true);
     },
     get exportJsonUrl() {
-      return isStaticMode() ? "#" : resolveApiUrl("/api/backup?action=export_json");
+      return isStaticMode() ? "#" : resolveApiUrl("/api/backup?action=export_json", true);
     },
     restore: withDemo(
       (projectsData: any[]) =>
@@ -379,7 +456,72 @@ export const apiService = {
       if (isStaticMode()) return "#";
       const sp = new URLSearchParams({ format, type });
       if (projectId) sp.set("projectId", projectId);
-      return resolveApiUrl(`/api/export?${sp.toString()}`);
+      return resolveApiUrl(`/api/export?${sp.toString()}`, true);
+    },
+  },
+
+  // Connection & Diagnostics
+  connection: {
+    test: async (overrideUrl?: string, overrideKey?: string): Promise<{
+      success: boolean;
+      status: number;
+      message: string;
+      latencyMs: number;
+    }> => {
+      const targetBase =
+        overrideUrl !== undefined
+          ? overrideUrl.trim().replace(/\/+$/, "")
+          : getApiBaseUrl();
+      const targetKey =
+        overrideKey !== undefined ? overrideKey.trim() : getApiKey();
+      const testUrl = targetBase ? `${targetBase}/api/projects` : "/api/projects";
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (targetKey) {
+        headers["x-api-key"] = targetKey;
+        headers["Authorization"] = `Bearer ${targetKey}`;
+      }
+
+      const start = performance.now();
+      try {
+        const res = await fetch(testUrl, {
+          method: "GET",
+          headers,
+        });
+        const latencyMs = Math.round(performance.now() - start);
+
+        if (res.ok) {
+          return {
+            success: true,
+            status: res.status,
+            message: `Connected successfully (${latencyMs}ms)`,
+            latencyMs,
+          };
+        } else if (res.status === 401 || res.status === 403) {
+          return {
+            success: false,
+            status: res.status,
+            message: "Authentication failed: Invalid or missing API Key.",
+            latencyMs,
+          };
+        } else {
+          return {
+            success: false,
+            status: res.status,
+            message: `Server returned HTTP ${res.status}`,
+            latencyMs,
+          };
+        }
+      } catch (err: any) {
+        return {
+          success: false,
+          status: 0,
+          message: `Network error: Could not reach backend (${err.message || "Connection refused"})`,
+          latencyMs: 0,
+        };
+      }
     },
   },
 };

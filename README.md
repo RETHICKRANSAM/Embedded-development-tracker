@@ -2,34 +2,37 @@
 
 > A personal development lifecycle, sprint task manager, phase checklist tracker, technical notebook, and product release gate verification suite for embedded systems engineers.
 
+**Live Application**: [https://rethickransam.github.io/Embedded-development-tracker/](https://rethickransam.github.io/Embedded-development-tracker/)
+
 ---
 
 ## 1. Overview
 
-**Embedded Dev Tracker** is a lightweight, local-first web application designed specifically for embedded systems engineers. It helps organize development from requirements through hardware bring-up, firmware development, integration testing, and formal release gates before demos, pilot trials, or production handoffs.
+**Embedded Dev Tracker** is a lightweight, fully client-side web application designed specifically for embedded systems engineers. It helps organize development from requirements through hardware study and bring-up, firmware architecture, integration testing, system validation, and formal release gates before demos, pilot trials, or production handoffs.
 
-- **100% Local & Private**: Runs completely on your computer with a persistent local SQLite database (`dev.db`). No cloud accounts, paid services, or telemetry required.
+- **100% Client-Side & Private**: Runs directly in your browser with persistent `localStorage`. Zero backend dependencies, no external databases, and no tracking or cloud accounts required.
 - **Release Readiness vs. Task Completion**: Built around the core engineering principle that task completion does *not* equate to demo or pilot readiness. Dedicated product release gates enforce verification of firmware builds, hardware revisions, power-fail recovery, and error conditions before sign-off.
 - **Failure & Retest Tracking**: Log test failures, record expected vs. actual behaviors, generate corrective engineering tasks, and maintain retest histories.
 - **Contextual Phase Notes**: Slide-over engineering notes panel accessible anywhere without leaving your active workspace.
+- **Data Portability**: Full JSON backup and restore, plus instant CSV exports for audit tables and sign-offs.
 
 ---
 
 ## 2. Technology Stack
 
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Next.js 16 (App Router with Static HTML Export `output: 'export'`)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS with dark/light engineering themes
+- **Styling**: Tailwind CSS with dark and light engineering themes
 - **Icons**: Lucide React
-- **Database & ORM**: SQLite with Prisma ORM
-- **Local Persistence**: Binary SQLite (`dev.db`) + JSON/CSV export & backup
+- **Storage**: Client-Side `localStorage` with automated schema migrations and default embedded project seeding
+- **Deployment**: GitHub Pages via GitHub Actions and static `out/` export
 
 ---
 
-## 3. Quick Start & Installation
+## 3. Quick Start & Local Development
 
 ### Prerequisites
-- Node.js 18+ (tested on Node 20 & 24)
+- Node.js 18+ (Node 20 or 22 recommended)
 - npm 9+
 
 ### 1. Install Dependencies
@@ -37,30 +40,25 @@
 npm install
 ```
 
-### 2. Initialize Database & Run Migrations
-```bash
-npm run db:migrate
-```
-
-### 3. (Optional) Seed Example Projects
-Populates realistic embedded projects (STM32 Nucleo Sensor Gateway, ESP32-S3 Matter Monitor):
-```bash
-npm run seed
-```
-
-### 4. Start the Development Server
+### 2. Start the Development Server
 ```bash
 npm run dev
 ```
 
-Open your browser at **[http://localhost:3000](http://localhost:3000)**.
+Open your browser at **[http://localhost:3000/Embedded-development-tracker/](http://localhost:3000/Embedded-development-tracker/)** (or configure local port).
+
+### 3. Build Static Export for Production
+```bash
+npm run build
+```
+This generates the optimized static files in the `out/` directory, ready to be hosted on GitHub Pages or any static file host.
 
 ---
 
-## 4. Main Sections & Capabilities
+## 4. Main Capabilities
 
 ### 1. Engineering Dashboard (`/`)
-- Aggregate KPIs: Total, Active, Completed projects.
+- Aggregate KPIs: Total, Active, and Completed projects.
 - Urgent task tracker: Tasks due today, overdue tasks, and blocked tasks.
 - Active Phase Pipeline: Visual distribution of projects across the 7 development phases.
 - Incomplete Release Gates: Highlights gates blocking demo or pilot readiness.
@@ -78,7 +76,7 @@ Open your browser at **[http://localhost:3000](http://localhost:3000)**.
 - Automatically initializes 7 development phases and 3 release gate checklists upon creation.
 
 ### 3. Development Lifecycle Workspace (`/lifecycle`)
-- Left phase sidebar with progress indicators for each stage:
+- 7 Lifecycle Phases with dedicated checklists and tasks:
   - **Phase 1**: Requirements and Planning
   - **Phase 2**: Hardware Study and Bring-up
   - **Phase 3**: Firmware Architecture and Development
@@ -86,79 +84,36 @@ Open your browser at **[http://localhost:3000](http://localhost:3000)**.
   - **Phase 5**: System Validation and Stress Testing
   - **Phase 6**: Demo or Pilot Preparation
   - **Phase 7**: Post-Demo Review
-- Phase-specific checklist verification with mandatory status tracking.
-- Sprint task tracker:
-  - Priorities: Low, Medium, High, Critical
-  - Statuses: To Do, In Progress, Pending, Blocked, Done
-  - Sub-task checklist items
-  - Ability to move tasks between lifecycle phases.
-- Add custom phases or checklist items at any time.
+- Sprint task tracker with Priorities (Low, Medium, High, Critical) and Statuses (To Do, In Progress, Pending, Blocked, Done).
+- Interactive checklist items with mandatory status enforcement.
 
-### 4. Product Release Gates (`/gates`) — Core Feature
+### 4. Product Release Gates (`/gates`)
 - Three gate templates initialized per project:
   - **Gate A: Before Demo** (14 checks: functionality, build success, hardware wiring, recovery image, demo scripts)
   - **Gate B: Before Pilot Deployment** (15 checks: functional acceptance, power-loss recovery, stress tests, memory/timing)
-  - **Gate C: Before Production Release** (13 checks: firmware frozen, checksum recorded, compliance, manufacturing programming)
-- **Sign-Off Workflow**:
-  - Gates cannot pass if any mandatory checks are incomplete or blocked.
-  - When mandatory checks are satisfied, gate enters **Ready for Review**.
-  - Final sign-off modal requires confirming firmware version, hardware revision, and review notes.
-  - Audit trail preserved in `GateHistory`.
-  - Warns if firmware or hardware configuration changes after a gate was previously passed.
+  - **Gate C: Before Production Release** (15 checks: flash protection, production fuses, environmental validation, regulatory compliance)
+- Sign-Off Workflow: Prevents passing if any mandatory checks are incomplete or failed.
+- Failure Tracking: Log failures with expected vs actual behaviors, corrective actions, and retest histories.
 
-### 5. Failure & Retest Tracking
-- Mark any gate check as **Failed**.
-- Record failure details: description, expected behavior, actual behavior, corrective action.
-- Option to auto-create a Critical corrective Task in the project.
-- Status progression: `Failed` -> `Fixed` -> `Verified`.
-- Preserves full historical retest evidence.
+### 5. Engineering Notes (`/notes`)
+- Categorized technical notes (Architecture, Bring-up, Bug, General).
+- Slide-over notes drawer available across all pages.
 
-### 6. Phase Notes Sidebar (Slide-Over)
-- Slide-over panel accessible from the top bar or inside any phase.
-- Capture technical decisions, debugging commands, register configurations, and oscilloscope findings.
-- Filter by active phase or view all notes.
-
-### 7. Personal Engineering Notes (`/notes`)
-- Cross-project engineering notebook.
-- Categories: Technical Decision, Debugging, Hardware, Firmware, Testing, Bug, Reference, General.
-- Instant search across titles and monospaced content.
-
-### 8. Settings, Persistence & Backup (`/settings`)
-- Direct download of SQLite binary (`dev.db`).
-- Export all projects as structured JSON.
-- Export release gate checklists and failures as CSV.
-- JSON Restore tool to import archives.
+### 6. Settings & Data Portability (`/settings`)
+- **JSON Backup**: Download all projects, phases, tasks, notes, and gates into a single `.json` file.
+- **JSON Restore**: Upload and restore previous backups directly into browser storage.
+- **CSV Audit Export**: Export release gate audit records and checklist states to CSV for stakeholder reviews.
+- **Sample Projects Reset**: Reset storage at any time to preload realistic embedded systems projects.
+- **Theme Preference**: Toggle between Dark and Light mode.
 
 ---
 
-## 5. Administration & Maintenance
+## 5. Deployment on GitHub Pages
 
-### Backup SQLite Database
-```powershell
-# PowerShell:
-Copy-Item dev.db dev_backup.db
+The repository uses GitHub Actions (`.github/workflows/deploy.yml`) to automatically build and deploy the Next.js static site to GitHub Pages whenever changes are pushed to `main`.
 
-# Linux / macOS:
-cp dev.db dev_backup.db
-```
-
-### Restore SQLite Database
-```powershell
-# PowerShell:
-Copy-Item dev_backup.db dev.db
-
-# Linux / macOS:
-cp dev_backup.db dev.db
-```
-
-### Production Build & Linting
-```bash
-npm run build
-npm run lint
-```
-
----
-
-## 6. License & Privacy
-
-This application is personal productivity software for embedded engineers. All data stays local on your machine.
+To ensure GitHub Pages serves the application correctly:
+1. Open the repository on GitHub.
+2. Go to **Settings** → **Pages**.
+3. Under **Build and deployment**:
+   - Set **Source** to **GitHub Actions** (recommended), OR set **Source** to **Deploy from a branch** with branch `gh-pages` and folder `/(root)`.

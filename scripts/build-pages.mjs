@@ -24,6 +24,12 @@ try {
     middlewareMoved = true;
   }
 
+  const nextCacheDir = path.join(rootDir, ".next");
+  if (fs.existsSync(nextCacheDir)) {
+    console.log("Clearing .next cache for clean static export...");
+    fs.rmSync(nextCacheDir, { recursive: true, force: true });
+  }
+
   console.log("Running Next.js static export build...");
   execSync("npx next build", {
     stdio: "inherit",

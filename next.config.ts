@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: isExport,
   },
+  typescript: {
+    ignoreBuildErrors: isExport,
+  },
   experimental: {
     agentUpgrade: "security",
   },

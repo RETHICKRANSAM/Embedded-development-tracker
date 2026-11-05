@@ -31,6 +31,8 @@ import {
   getApiBaseUrl,
   setApiBaseUrl,
   isStaticMode,
+  getForceMode,
+  setForceMode,
 } from "@/lib/api-service";
 
 export default function SettingsPage() {
@@ -53,11 +55,13 @@ export default function SettingsPage() {
   } | null>(null);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [staticFallback, setStaticFallback] = useState(false);
+  const [forceMode, setForceModeState] = useState<"auto" | "live" | "demo">("auto");
 
   useEffect(() => {
     setApiUrlState(getApiBaseUrl());
     setApiKeyState(getApiKey());
     setStaticFallback(isStaticMode());
+    setForceModeState(getForceMode());
   }, []);
 
   const handleSaveApiConfig = (e: React.FormEvent) => {
@@ -66,6 +70,15 @@ export default function SettingsPage() {
     setApiKey(apiKey);
     setSaveNotice("API settings saved successfully!");
     setStaticFallback(isStaticMode());
+    refreshProjects();
+    setTimeout(() => setSaveNotice(null), 3000);
+  };
+
+  const handleModeChange = (newMode: "auto" | "live" | "demo") => {
+    setForceMode(newMode);
+    setForceModeState(newMode);
+    setStaticFallback(isStaticMode());
+    setSaveNotice(`Switched data mode to: ${newMode.toUpperCase()}`);
     refreshProjects();
     setTimeout(() => setSaveNotice(null), 3000);
   };
@@ -163,10 +176,52 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-[11px] text-zinc-500 font-mono">
-              Mode: {staticFallback ? "Static/Demo Mode" : "Live Backend API"}
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            <span
+              className={`text-[11px] font-mono px-2.5 py-1 rounded-md border flex items-center gap-1.5 ${
+                !staticFallback
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold"
+                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+              }`}
+            >
+              {!staticFallback ? "🟢 Live SQLite Database (dev.db)" : "🟠 Static Demo Data"}
             </span>
+
+            <div className="inline-flex rounded-md border border-zinc-200 dark:border-zinc-800 p-0.5 text-[10px] font-mono">
+              <button
+                type="button"
+                onClick={() => handleModeChange("live")}
+                className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                  forceMode === "live"
+                    ? "bg-black text-white dark:bg-white dark:text-black font-bold"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400"
+                }`}
+              >
+                Force Live DB
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange("auto")}
+                className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                  forceMode === "auto"
+                    ? "bg-black text-white dark:bg-white dark:text-black font-bold"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400"
+                }`}
+              >
+                Auto
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeChange("demo")}
+                className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                  forceMode === "demo"
+                    ? "bg-black text-white dark:bg-white dark:text-black font-bold"
+                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400"
+                }`}
+              >
+                Force Demo
+              </button>
+            </div>
           </div>
         </div>
 

@@ -74,12 +74,29 @@ export function isStaticMode(): boolean {
   const apiBase = getApiBaseUrl();
   if (apiBase) return false;
 
-  // On localhost with a dev server, the API routes are available
+  // If running on GitHub Pages static deployment without an external API configured, fallback to demo mode
   const host = window.location.hostname;
-  if (host === "localhost" || host === "127.0.0.1") return false;
+  if (host.endsWith("github.io")) return true;
 
-  // Otherwise we're on a static host (e.g. GitHub Pages) without a configured backend
-  return true;
+  // For localhost, 127.0.0.1, local network IPs (192.168.x, 10.x), or standard server deployments,
+  // use the live Next.js API routes backed by the SQLite database!
+  return false;
+}
+
+export function getForceMode(): "auto" | "live" | "demo" {
+  if (typeof window === "undefined") return "auto";
+  const mode = localStorage.getItem(STORAGE_KEY_FORCE_MODE);
+  if (mode === "live" || mode === "demo") return mode;
+  return "auto";
+}
+
+export function setForceMode(mode: "auto" | "live" | "demo"): void {
+  if (typeof window === "undefined") return;
+  if (mode === "auto") {
+    localStorage.removeItem(STORAGE_KEY_FORCE_MODE);
+  } else {
+    localStorage.setItem(STORAGE_KEY_FORCE_MODE, mode);
+  }
 }
 
 /** Exported so other modules can check demo mode */

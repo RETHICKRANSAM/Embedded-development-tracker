@@ -5,7 +5,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const dbPath = path.resolve(process.cwd(), "dev.db");
+    const dbPath = fs.existsSync(path.resolve(process.cwd(), "prisma", "dev.db"))
+      ? path.resolve(process.cwd(), "prisma", "dev.db")
+      : path.resolve(process.cwd(), "dev.db");
     if (!fs.existsSync(dbPath)) {
       return NextResponse.json({ error: "Database file not found" }, { status: 404 });
     }

@@ -5,15 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:pages": "node scripts/build-pages.mjs",
+    "build:pages": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "seed": "tsx prisma/seed.ts",
-    "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "lint": "eslint"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.54.0",
     "next": "^16.4.3",
@@ -30,9 +26,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.4.3",
     "postcss": "^8.5.29",
-    "prisma": "^6.19.3",
     "tailwindcss": "^4",
-    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

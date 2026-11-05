@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
-import { apiService, resolveApiUrl } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 import { StatusPill } from "@/components/monday/status-pill";
 import { StatusBatteryBar } from "@/components/monday/status-battery-bar";
 import { MondayTabs } from "@/components/monday/monday-tabs";
@@ -56,9 +56,9 @@ export default function ReleaseGatesPage() {
     if (!selectedProjectId) return;
     setLoading(true);
     try {
-      const data = await apiService.projects.get(selectedProjectId);
+      const data = await storage.projects.get(selectedProjectId);
       setProjectData(data);
-      if (data.releaseGates?.length > 0) {
+      if (data && data.releaseGates && data.releaseGates.length > 0) {
         if (!activeGateId || !data.releaseGates.some((g: any) => g.id === activeGateId)) {
           setActiveGateId(data.releaseGates[0].id);
         }
@@ -80,7 +80,7 @@ export default function ReleaseGatesPage() {
   const handleToggleItemStatus = async (item: any) => {
     const nextStatus = item.status === "Passed" ? "Pending" : "Passed";
     try {
-      await apiService.gates.updateItem(item.id, { status: nextStatus });
+      await storage.gates.updateItem(item.id, { status: nextStatus });
       fetchProjectGates();
       refreshProjects();
     } catch (err) {
@@ -91,7 +91,7 @@ export default function ReleaseGatesPage() {
   // Status dropdown change
   const handleItemStatusChange = async (itemId: string, status: string) => {
     try {
-      await apiService.gates.updateItem(itemId, { status });
+      await storage.gates.updateItem(itemId, { status });
       fetchProjectGates();
       refreshProjects();
     } catch (err) {
@@ -106,7 +106,7 @@ export default function ReleaseGatesPage() {
 
     setFailSubmitting(true);
     try {
-      await apiService.gates.createFailure(failureModalItem.id, {
+      await storage.gates.createFailure(failureModalItem.id, {
         description: failDesc.trim(),
         expectedBehavior: failExpected.trim() || undefined,
         actualBehavior: failActual.trim() || undefined,
@@ -133,7 +133,7 @@ export default function ReleaseGatesPage() {
     if (!historyModalItem) return;
 
     try {
-      await apiService.gates.updateFailure(historyModalItem.id, {
+      await storage.gates.updateFailure(historyModalItem.id, {
         failureId,
         status: retestStatus,
         retestResult: retestResult.trim() || undefined,
@@ -157,7 +157,7 @@ export default function ReleaseGatesPage() {
     setPassError(null);
 
     try {
-      await apiService.gates.passGate(activeGate.id, {
+      await storage.gates.passGate(activeGate.id, {
         firmwareVersion: passFwVersion.trim() || undefined,
         hardwareRevision: passHwRevision.trim() || undefined,
         reviewNote: passReviewNote.trim() || undefined,
@@ -182,21 +182,33 @@ export default function ReleaseGatesPage() {
     if (!activeGate || !newItemTitle.trim()) return;
 
     try {
-      const res = await fetch(resolveApiUrl(`/api/gates/${activeGate.id}/items`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newItemTitle.trim(),
-          isMandatory: newItemMandatory,
-        }),
+      await storage.gates.addItem(activeGate.id, {
+        title: newItemTitle.trim(),
+        isMandatory: newItemMandatory,
       });
-      if (res.ok) {
-        setNewItemTitle("");
-        setIsAddItemOpen(false);
-        fetchProjectGates();
-      }
+      setNewItemTitle("");
+      setIsAddItemOpen(false);
+      fetchProjectGates();
     } catch (err) {
       console.error("Failed to add gate item:", err);
+    }
+  };
+
+  // Export Gates Audit CSV Client-Side
+  const handleExportGatesCsv = async () => {
+    try {
+      const csv = await storage.backup.exportGatesCsv(selectedProjectId || undefined);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${projectData?.projectCode || "RELEASE"}_gates_audit.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export gates CSV:", err);
     }
   };
 
@@ -284,14 +296,15 @@ export default function ReleaseGatesPage() {
             </button>
           )}
 
-          <a
-            href={apiService.backup.exportData("csv", "gates", selectedProjectId)}
-            className="btn-secondary h-9"
+          <button
+            type="button"
+            onClick={handleExportGatesCsv}
+            className="btn-secondary h-9 px-3 text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Download Verification Audit CSV"
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Export Audit</span>
-          </a>
+          </button>
         </div>
       </div>
 

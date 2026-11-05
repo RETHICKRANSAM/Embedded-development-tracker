@@ -5,18 +5,13 @@ import {
   BookOpen,
   Plus,
   Search,
-  StickyNote,
   Trash2,
   Edit2,
-  Calendar,
-  Layers,
   X,
-  MessageSquare,
-  Cpu,
 } from "lucide-react";
 import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
-import { apiService } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 
 const NOTE_CATEGORIES = [
   "All",
@@ -55,7 +50,7 @@ export default function EngineeringNotesPage() {
   const fetchNotes = async () => {
     setLoading(true);
     try {
-      const data = await apiService.notes.list({
+      const data = await storage.notes.list({
         projectId: projectFilter !== "All" ? projectFilter : undefined,
         category: categoryFilter !== "All" ? categoryFilter : undefined,
         search: search.trim() || undefined,
@@ -78,7 +73,7 @@ export default function EngineeringNotesPage() {
 
     setSubmitting(true);
     try {
-      await apiService.notes.create({
+      await storage.notes.create({
         projectId: noteProjectId,
         title: noteTitle.trim(),
         content: noteContent.trim(),
@@ -101,7 +96,7 @@ export default function EngineeringNotesPage() {
     if (!editingNote) return;
 
     try {
-      await apiService.notes.update(editingNote.id, {
+      await storage.notes.update(editingNote.id, {
         title: editingNote.title,
         content: editingNote.content,
         category: editingNote.category,
@@ -117,7 +112,7 @@ export default function EngineeringNotesPage() {
   const handleDeleteNote = async (id: string) => {
     if (!confirm("Are you sure you want to delete this technical note?")) return;
     try {
-      await apiService.notes.delete(id);
+      await storage.notes.delete(id);
       fetchNotes();
     } catch (err) {
       console.error("Failed to delete note:", err);

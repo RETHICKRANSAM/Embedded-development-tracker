@@ -6,8 +6,6 @@ import {
   StickyNote,
   Sun,
   Moon,
-  Cpu,
-  Layers,
   ChevronDown,
 } from "lucide-react";
 import { useProject, useTheme } from "./providers";
@@ -23,8 +21,6 @@ export function Topbar() {
   } = useProject();
   const { theme, toggleTheme } = useTheme();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-
-  const activeProject = projects.find((p) => p.id === selectedProjectId);
 
   return (
     <>

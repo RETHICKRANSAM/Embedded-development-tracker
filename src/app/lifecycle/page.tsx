@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
-import { apiService, resolveApiUrl } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 import { StatusPill } from "@/components/monday/status-pill";
 import { PriorityPill } from "@/components/monday/priority-pill";
 import { StatusBatteryBar } from "@/components/monday/status-battery-bar";
@@ -71,7 +71,7 @@ export default function LifecyclePage() {
     if (!selectedProjectId) return;
     setLoading(true);
     try {
-      const data = await apiService.projects.get(selectedProjectId);
+      const data = await storage.projects.get(selectedProjectId);
       setProjectData(data);
     } catch (err) {
       console.error("Failed to load project lifecycle:", err);
@@ -103,7 +103,7 @@ export default function LifecyclePage() {
   // Status Change for Task
   const handleTaskStatusChange = async (taskId: string, newStatus: string) => {
     try {
-      await apiService.tasks.update(taskId, { status: newStatus });
+      await storage.tasks.update(taskId, { status: newStatus });
       fetchFullProject();
       refreshProjects();
     } catch (err) {
@@ -114,7 +114,7 @@ export default function LifecyclePage() {
   // Priority Change for Task
   const handleTaskPriorityChange = async (taskId: string, newPriority: string) => {
     try {
-      await apiService.tasks.update(taskId, { priority: newPriority });
+      await storage.tasks.update(taskId, { priority: newPriority });
       fetchFullProject();
     } catch (err) {
       console.error("Failed to update task priority:", err);
@@ -124,7 +124,7 @@ export default function LifecyclePage() {
   // Move task to another phase
   const handleMoveTaskPhase = async (taskId: string, newPhaseId: string) => {
     try {
-      await apiService.tasks.update(taskId, { phaseId: newPhaseId });
+      await storage.tasks.update(taskId, { phaseId: newPhaseId });
       fetchFullProject();
       refreshProjects();
     } catch (err) {
@@ -136,7 +136,7 @@ export default function LifecyclePage() {
   const handleDeleteTask = async (taskId: string) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
     try {
-      await apiService.tasks.delete(taskId);
+      await storage.tasks.delete(taskId);
       fetchFullProject();
       refreshProjects();
     } catch (err) {
@@ -150,7 +150,7 @@ export default function LifecyclePage() {
     if (!title || !selectedProjectId) return;
 
     try {
-      await apiService.tasks.create({
+      await storage.tasks.create({
         projectId: selectedProjectId,
         phaseId,
         title,
@@ -171,7 +171,7 @@ export default function LifecyclePage() {
     if (!newTaskTitle.trim() || !modalTargetPhaseId || !selectedProjectId) return;
 
     try {
-      await apiService.tasks.create({
+      await storage.tasks.create({
         projectId: selectedProjectId,
         phaseId: modalTargetPhaseId,
         title: newTaskTitle.trim(),
@@ -199,7 +199,7 @@ export default function LifecyclePage() {
     if (!title) return;
 
     try {
-      await apiService.tasks.addChecklistItem(taskId, title);
+      await storage.tasks.addChecklistItem(taskId, title);
       setNewSubItemInput((prev) => ({ ...prev, [taskId]: "" }));
       fetchFullProject();
     } catch (err) {
@@ -210,7 +210,7 @@ export default function LifecyclePage() {
   // Toggle Sub-item completion
   const handleToggleSubItem = async (taskId: string, itemId: string, currentVal: boolean) => {
     try {
-      await apiService.tasks.updateChecklistItem(taskId, itemId, !currentVal);
+      await storage.tasks.updateChecklistItem(taskId, itemId, !currentVal);
       fetchFullProject();
     } catch (err) {
       console.error("Failed to toggle sub-item:", err);
@@ -221,7 +221,7 @@ export default function LifecyclePage() {
   const handleTogglePhaseChecklistItem = async (item: any) => {
     const nextStatus = item.status === "Passed" ? "Pending" : "Passed";
     try {
-      await apiService.phaseItems.update(item.id, { status: nextStatus });
+      await storage.phaseItems.update(item.id, { status: nextStatus });
       fetchFullProject();
       refreshProjects();
     } catch (err) {
@@ -235,20 +235,15 @@ export default function LifecyclePage() {
     if (!newPhaseName.trim() || !selectedProjectId) return;
 
     try {
-      const res = await fetch(resolveApiUrl(`/api/projects/${selectedProjectId}/phases`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newPhaseName.trim(),
-          description: newPhaseDesc.trim(),
-        }),
+      await storage.phases.create({
+        projectId: selectedProjectId,
+        name: newPhaseName.trim(),
+        description: newPhaseDesc.trim(),
       });
-      if (res.ok) {
-        setNewPhaseName("");
-        setNewPhaseDesc("");
-        setIsAddPhaseModalOpen(false);
-        fetchFullProject();
-      }
+      setNewPhaseName("");
+      setNewPhaseDesc("");
+      setIsAddPhaseModalOpen(false);
+      fetchFullProject();
     } catch (err) {
       console.error("Failed to add phase:", err);
     }
@@ -865,7 +860,7 @@ export default function LifecyclePage() {
                             <StatusPill
                               status={item.status}
                               onChange={(s) =>
-                                apiService.phaseItems.update(item.id, { status: s }).then(() => {
+                                storage.phaseItems.update(item.id, { status: s }).then(() => {
                                   fetchFullProject();
                                   refreshProjects();
                                 })

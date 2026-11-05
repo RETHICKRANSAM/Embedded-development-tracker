@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Cpu, AlertOctagon } from "lucide-react";
 import { useProject } from "./providers";
-import { apiService } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -57,7 +57,7 @@ export function CreateProjectModal({
     setError(null);
 
     try {
-      const data = await apiService.projects.create(formData);
+      const data = await storage.projects.create(formData);
       await refreshProjects();
       setSelectedProjectId(data.id);
       if (onProjectCreated) onProjectCreated(data);

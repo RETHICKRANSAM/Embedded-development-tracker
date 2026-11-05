@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useProject } from "./providers";
 import { formatDate } from "@/lib/utils";
-import { apiService } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 
 const NOTE_CATEGORIES = [
   "Technical Decision",
@@ -52,7 +52,7 @@ export function NotesDrawer() {
     if (!selectedProjectId) return;
     setLoading(true);
     try {
-      const data = await apiService.notes.list({
+      const data = await storage.notes.list({
         projectId: selectedProjectId,
         phaseId: activePhaseForNotes || undefined,
         category: selectedCategory !== "All" ? selectedCategory : undefined,
@@ -78,7 +78,7 @@ export function NotesDrawer() {
 
     setSubmitting(true);
     try {
-      await apiService.notes.create({
+      await storage.notes.create({
         projectId: selectedProjectId,
         phaseId: activePhaseForNotes || activeProject?.currentPhaseId || undefined,
         title: newTitle.trim(),
@@ -101,7 +101,7 @@ export function NotesDrawer() {
   const handleDeleteNote = async (noteId: string) => {
     if (!confirm("Are you sure you want to delete this technical note?")) return;
     try {
-      await apiService.notes.delete(noteId);
+      await storage.notes.delete(noteId);
       fetchNotes();
     } catch (err) {
       console.error("Failed to delete note:", err);

@@ -13,11 +13,10 @@ import {
   GitFork,
   CheckCircle2,
   Cpu,
-  Layers,
 } from "lucide-react";
 import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
-import { apiService } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 import { StatusPill } from "@/components/monday/status-pill";
 
 const LIFECYCLE_STAGES = [
@@ -74,7 +73,7 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const json = await apiService.dashboard.get();
+      const json = await storage.dashboard.get();
       setData(json);
     } catch (err) {
       console.error("Failed to load dashboard:", err);
@@ -90,7 +89,7 @@ export default function DashboardPage() {
   const handleTaskStatusToggle = async (taskId: string, currentStatus: string) => {
     const nextStatus = currentStatus === "Done" ? "To Do" : "Done";
     try {
-      await apiService.tasks.update(taskId, { status: nextStatus });
+      await storage.tasks.update(taskId, { status: nextStatus });
       fetchDashboardData();
       refreshProjects();
     } catch (err) {
@@ -348,13 +347,20 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
-                {recentProjects.map((p: any) => (
-                  <tr
-                    key={p.id}
-                    onClick={() => handleProjectClick(p.id)}
-                    className="hover:bg-zinc-50 dark:hover:bg-zinc-900/60 cursor-pointer transition-colors"
-                    title={`Click to open ${p.name} in Lifecycle workspace`}
-                  >
+                {recentProjects.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-zinc-500 dark:text-zinc-400 text-xs">
+                      No active projects. Create your first project to start tracking lifecycle & gates.
+                    </td>
+                  </tr>
+                ) : (
+                  recentProjects.map((p: any) => (
+                    <tr
+                      key={p.id}
+                      onClick={() => handleProjectClick(p.id)}
+                      className="hover:bg-zinc-50 dark:hover:bg-zinc-900/60 cursor-pointer transition-colors"
+                      title={`Click to open ${p.name} in Lifecycle workspace`}
+                    >
                     <td className="py-3 pl-4 pr-2">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 flex items-center justify-center shrink-0 border border-zinc-200 dark:border-zinc-800">
@@ -410,7 +416,8 @@ export default function DashboardPage() {
                       )}
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
               </tbody>
             </table>
           </div>
@@ -539,8 +546,15 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
-              {incompleteGates.slice(0, 5).map((g: any) => {
-                const pct = g.totalItems > 0 ? Math.round((g.completedItems / g.totalItems) * 100) : 0;
+              {incompleteGates.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-zinc-500 dark:text-zinc-400 text-xs">
+                    All product release gates are verified and passed. Ready for deployment!
+                  </td>
+                </tr>
+              ) : (
+                incompleteGates.slice(0, 5).map((g: any) => {
+                  const pct = g.totalItems > 0 ? Math.round((g.completedItems / g.totalItems) * 100) : 0;
                 return (
                   <tr key={g.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/60 transition-colors">
                     <td className="py-3 px-4 font-medium text-zinc-900 dark:text-zinc-100">
@@ -587,7 +601,8 @@ export default function DashboardPage() {
                     </td>
                   </tr>
                 );
-              })}
+              })
+            )}
             </tbody>
           </table>
         </div>

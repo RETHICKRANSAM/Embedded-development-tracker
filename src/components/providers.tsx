@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-import { apiService } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 
 type Theme = "dark" | "light";
 
@@ -71,7 +71,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const fetchProjects = async () => {
     try {
-      const data = await apiService.projects.list();
+      const data = await storage.projects.list();
       setProjects(data);
       if (data && data.length > 0 && !selectedProjectId) {
         const saved = localStorage.getItem("edt_active_project");

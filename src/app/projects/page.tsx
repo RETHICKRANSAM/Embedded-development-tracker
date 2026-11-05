@@ -21,7 +21,7 @@ import {
 import { useProject } from "@/components/providers";
 import { CreateProjectModal } from "@/components/create-project-modal";
 import { formatDate } from "@/lib/utils";
-import { apiService } from "@/lib/api-service";
+import { storage } from "@/lib/storage";
 import { StatusPill } from "@/components/monday/status-pill";
 import { StatusBatteryBar } from "@/components/monday/status-battery-bar";
 
@@ -40,7 +40,7 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const data = await apiService.projects.list();
+      const data = await storage.projects.list();
       setProjects(data);
     } catch (err) {
       console.error("Failed to load projects:", err);
@@ -58,7 +58,7 @@ export default function ProjectsPage() {
     if (!editingProject) return;
 
     try {
-      await apiService.projects.update(editingProject.id, editingProject);
+      await storage.projects.update(editingProject.id, editingProject);
       setEditingProject(null);
       fetchProjects();
       refreshProjects();
@@ -69,7 +69,7 @@ export default function ProjectsPage() {
 
   const handleStatusChange = async (projectId: string, newStatus: string) => {
     try {
-      await apiService.projects.update(projectId, { status: newStatus });
+      await storage.projects.update(projectId, { status: newStatus });
       fetchProjects();
       refreshProjects();
     } catch (err) {
@@ -87,7 +87,7 @@ export default function ProjectsPage() {
     }
 
     try {
-      await apiService.projects.delete(id);
+      await storage.projects.delete(id);
       fetchProjects();
       refreshProjects();
     } catch (err) {
@@ -98,7 +98,7 @@ export default function ProjectsPage() {
   const handleArchiveProject = async (proj: any) => {
     const nextStatus = proj.status === "Archived" ? "Active" : "Archived";
     try {
-      await apiService.projects.update(proj.id, { status: nextStatus });
+      await storage.projects.update(proj.id, { status: nextStatus });
       fetchProjects();
       refreshProjects();
     } catch (err) {

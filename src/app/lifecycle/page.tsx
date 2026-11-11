@@ -282,7 +282,8 @@ export default function LifecyclePage() {
 
   // Filter tasks in phases
   const filteredPhases = phases.map((phase: any) => {
-    const tasks = (phase.tasks || []).filter((task: any) => {
+    const rawPhaseTasks = (projectData?.tasks || []).filter((t: any) => t.phaseId === phase.id);
+    const tasks = rawPhaseTasks.filter((task: any) => {
       const matchesSearch =
         search === "" ||
         task.title.toLowerCase().includes(search.toLowerCase()) ||

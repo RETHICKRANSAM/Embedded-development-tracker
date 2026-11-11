@@ -244,6 +244,7 @@ export function createDefaultGates(projectId: string): ReleaseGate[] {
 function generateSeedData(): StorageData {
   const p1Id = generateId();
   const p2Id = generateId();
+  const p3Id = generateId();
 
   // Project 1: STM32 Smart Sensor Hub
   const p1Phases = createDefaultPhases(p1Id);
@@ -351,6 +352,64 @@ function generateSeedData(): StorageData {
     },
   ];
 
+  // Project 3: BLE Asset Tracker — nRF52840
+  const p3Phases = createDefaultPhases(p3Id);
+  p3Phases[0].status = "Completed";
+  p3Phases[0].checklistItems.forEach((ci) => {
+    ci.status = "Passed";
+    ci.verifiedAt = daysAgo(20);
+  });
+  p3Phases[1].status = "Completed";
+  p3Phases[1].checklistItems.forEach((ci) => {
+    ci.status = "Passed";
+    ci.verifiedAt = daysAgo(8);
+  });
+  p3Phases[2].status = "In Progress";
+
+  const p3Gates = createDefaultGates(p3Id);
+  p3Gates[0].status = "In Progress";
+  p3Gates[0].items.slice(0, 10).forEach((item) => {
+    item.status = "Passed";
+    item.verifiedAt = daysAgo(5);
+  });
+
+  const p3Tasks: Task[] = [
+    {
+      id: generateId(),
+      projectId: p3Id,
+      phaseId: p3Phases[2].id,
+      title: "Tune DCDC regulator and sleep current to < 5µA",
+      description: "Measure current consumption across system sleep modes using PPK2",
+      status: "In Progress",
+      priority: "Critical",
+      dueDate: daysFromNow(3),
+      createdAt: daysAgo(8),
+      updatedAt: daysAgo(2),
+      project: { id: p3Id, name: "BLE Asset Tracker — nRF52840", projectCode: "PROJ-BLE-NODE" },
+      phase: { id: p3Phases[2].id, name: p3Phases[2].name },
+      checklistItems: [
+        { id: generateId(), taskId: "", title: "Enable REG1 internal DCDC mode", isCompleted: true },
+        { id: generateId(), taskId: "", title: "Disable unused RAM banks in System OFF", isCompleted: true },
+        { id: generateId(), taskId: "", title: "Validate accelerometer INT pin wake-up", isCompleted: false },
+      ],
+    },
+    {
+      id: generateId(),
+      projectId: p3Id,
+      phaseId: p3Phases[2].id,
+      title: "Implement BLE advertising payload with battery voltage service",
+      description: "Broadcast periodic manufacturer telemetry packets every 2.5 seconds",
+      status: "Done",
+      priority: "High",
+      dueDate: daysAgo(3),
+      createdAt: daysAgo(12),
+      updatedAt: daysAgo(3),
+      project: { id: p3Id, name: "BLE Asset Tracker — nRF52840", projectCode: "PROJ-BLE-NODE" },
+      phase: { id: p3Phases[2].id, name: p3Phases[2].name },
+      checklistItems: [],
+    },
+  ];
+
   const projects: Project[] = [
     {
       id: p1Id,
@@ -394,6 +453,27 @@ function generateSeedData(): StorageData {
       tasks: p2Tasks,
       releaseGates: p2Gates,
     },
+    {
+      id: p3Id,
+      name: "BLE Asset Tracker — nRF52840",
+      projectCode: "PROJ-BLE-NODE",
+      description: "Ultra-low-power Bluetooth LE beacon with environmental sensors, power fail detection, and accelerometer motion wake-up.",
+      category: "Wearables & Beacons",
+      hardwarePlatform: "Nordic nRF52840-DK",
+      mcu: "nRF52840 (ARM Cortex-M4F)",
+      ide: "VS Code / nRF Connect SDK",
+      language: "C / Zephyr RTOS",
+      rtos: "Zephyr RTOS",
+      repositoryUrl: "https://github.com/example/nrf52840-ble-tracker",
+      status: "Active",
+      startDate: daysAgo(25),
+      targetDate: daysFromNow(30),
+      createdAt: daysAgo(25),
+      updatedAt: daysAgo(2),
+      phases: p3Phases,
+      tasks: p3Tasks,
+      releaseGates: p3Gates,
+    },
   ];
 
   const notes: Note[] = [
@@ -436,6 +516,19 @@ function generateSeedData(): StorageData {
       project: { id: p2Id, name: projects[1].name, projectCode: projects[1].projectCode },
       phase: { id: p2Phases[1].id, name: p2Phases[1].name },
     },
+    {
+      id: generateId(),
+      projectId: p3Id,
+      phaseId: p3Phases[1].id,
+      title: "Zephyr PM subsystem and system OFF current measurements",
+      content:
+        "Measured 3.8µA in System OFF sleep mode with RAM retention on 32KB. Verified DCDC enabled on REG1.\n\nWake-up source tested: GPIOTE interrupt from LIS2DH12 accelerometer INT1 pin successfully transitions chip back to System ON.",
+      category: "Hardware",
+      createdAt: daysAgo(5),
+      updatedAt: daysAgo(4),
+      project: { id: p3Id, name: projects[2].name, projectCode: projects[2].projectCode },
+      phase: { id: p3Phases[1].id, name: p3Phases[1].name },
+    },
   ];
 
   return { projects, notes };
@@ -466,8 +559,14 @@ function readStorage(): StorageData {
       notes: parsed.notes || [],
     };
   } catch (err) {
-    console.error("Failed to read localStorage:", err);
-    return generateSeedData();
+    console.error("Failed to read localStorage (corrupted JSON detected). Resetting gracefully:", err);
+    try {
+      const seed = generateSeedData();
+      writeStorage(seed);
+      return seed;
+    } catch {
+      return generateSeedData();
+    }
   }
 }
 

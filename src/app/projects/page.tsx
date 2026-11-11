@@ -26,7 +26,7 @@ import { StatusPill } from "@/components/monday/status-pill";
 import { StatusBatteryBar } from "@/components/monday/status-battery-bar";
 
 export default function ProjectsPage() {
-  const { setSelectedProjectId, refreshProjects } = useProject();
+  const { setSelectedProjectId, refreshProjects, projects: contextProjects } = useProject();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
@@ -51,7 +51,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [contextProjects]);
 
   const handleUpdateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -648,6 +648,7 @@ export default function ProjectsPage() {
       {isCreateOpen && (
         <CreateProjectModal
           isOpen={isCreateOpen}
+          onProjectCreated={() => fetchProjects()}
           onClose={() => {
             setIsCreateOpen(false);
             fetchProjects();

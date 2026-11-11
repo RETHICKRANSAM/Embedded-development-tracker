@@ -32,12 +32,14 @@ export default function SettingsPage() {
   const handleExportAllJson = async () => {
     try {
       const jsonContent = await storage.backup.exportJson();
-      const dateStr = new Date().toISOString().slice(0, 10);
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = `${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}`;
       const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `embedded_dev_tracker_backup_${dateStr}.json`;
+      a.download = `embedded_dev_tracker_backup_${dateStr}_${timeStr}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -60,6 +62,14 @@ export default function SettingsPage() {
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const confirmed = confirm(
+      "Importing this JSON backup will replace all current projects, phases, tasks, checklist items, and engineering notes in this browser.\n\nAre you sure you want to proceed?"
+    );
+    if (!confirmed) {
+      e.target.value = "";
+      return;
+    }
 
     setImporting(true);
     setFeedbackMessage(null);
@@ -88,7 +98,7 @@ export default function SettingsPage() {
   // Reset to default sample projects
   const handleResetAllData = async () => {
     const confirmed = confirm(
-      "Are you sure you want to reset all data?\n\nThis will restore the original demo embedded engineering projects. Any unsaved custom projects in this browser will be replaced."
+      "Are you sure you want to reset all data?\n\n⚠️ Important: Data lives only in this browser. Please ensure you have exported a JSON backup first if you have custom projects.\n\nThis will restore the original demo embedded engineering projects. Any unsaved custom work will be replaced."
     );
     if (!confirmed) return;
 
@@ -138,34 +148,54 @@ export default function SettingsPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="pb-2 border-b border-zinc-200 dark:border-zinc-800">
-        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-          <Settings className="w-5 h-5" />
-          <span>System Settings & Data Persistence</span>
-        </h1>
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-          Manage browser local storage, backup engineering snapshots, export audit tables, and configure interface preferences.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            <span>System Settings & Data Persistence</span>
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Manage browser local storage, backup engineering snapshots, export audit tables, and configure interface preferences.
+          </p>
+        </div>
+
+        {/* Header Status Badge */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700 font-semibold flex items-center gap-2 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span>Local storage – Persistent</span>
+          </span>
+        </div>
       </div>
 
       {/* Storage Status Card */}
-      <div className="mono-card p-5 flex items-start gap-4">
-        <div className="w-10 h-10 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shrink-0 shadow-xs">
-          <HardDrive className="w-5 h-5" />
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Browser Local Storage
-            </h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
-              LOCAL STORAGE ACTIVE
-            </span>
+      <div className="mono-card p-5 space-y-3">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center shrink-0 shadow-xs">
+            <HardDrive className="w-5 h-5" />
           </div>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-            All projects, development phases, tasks, checklist items, engineering notes, and product release gate history are stored locally in your browser (localStorage). Data is stored in this browser and should be exported regularly.
-          </p>
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                Browser Local Storage
+              </h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                LOCAL STORAGE ACTIVE
+              </span>
+            </div>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              All projects, development phases, tasks, checklist items, engineering notes, and product release gate history are stored locally in your browser (localStorage).
+            </p>
+          </div>
+        </div>
+
+        {/* Browser Persistence Warning Callout */}
+        <div className="p-3 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="leading-relaxed">
+            <span className="font-semibold">Important Storage Note:</span> Data lives only in this browser and device. Clearing cookies, website site data, or private browsing sessions will erase your records. Please download regular <strong>JSON backups</strong> to safeguard your work.
+          </div>
         </div>
       </div>
 

@@ -204,6 +204,7 @@ test.describe('Embedded Dev Tracker - End to End Test Suite', () => {
   });
 
   test('7. Edge Cases: Corrupted localStorage recovery and invalid import handling', async ({ page }) => {
+    page.on('dialog', (dialog) => dialog.accept());
     await page.goto('/Embedded-development-tracker/settings/');
 
     // Set corrupted data in localStorage under both keys

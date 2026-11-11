@@ -169,3 +169,81 @@ input, select, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(113, 113, 122, 0.6);
 }
+
+/* ==========================================================================
+   Embedded Hardware & Oscilloscope Signal Animations
+   ========================================================================== */
+
+/* Authentic RTOS Scheduler Heartbeat LED (Double-pulse blink) */
+@keyframes rtos-heartbeat {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.92);
+    box-shadow: 0 0 0px transparent;
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.95), 0 0 4px #10b981;
+  }
+  24% {
+    opacity: 0.45;
+    transform: scale(1);
+    box-shadow: 0 0 2px rgba(16, 185, 129, 0.4);
+  }
+  36% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.95), 0 0 4px #10b981;
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.92);
+    box-shadow: 0 0 0px transparent;
+  }
+}
+
+.heartbeat-led {
+  animation: rtos-heartbeat 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Oscilloscope Trigger & Waveform Glow */
+@keyframes oscilloscope-flow {
+  0% {
+    stroke-dashoffset: 600;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.oscilloscope-path {
+  stroke-dasharray: 20 6;
+  animation: oscilloscope-flow 12s linear infinite;
+}
+
+/* Clock Wave Continuous Horizontal Scroll */
+@keyframes clock-wave-shift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.clock-wave-scroll {
+  display: flex;
+  width: 200%;
+  animation: clock-wave-shift 6s linear infinite;
+}
+
+/* Card Interactive Circuit Glow on Hover */
+.mono-card {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.mono-card:hover {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 2px 14px rgba(16, 185, 129, 0.08);
+}

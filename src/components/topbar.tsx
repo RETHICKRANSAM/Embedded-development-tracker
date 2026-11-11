@@ -28,7 +28,11 @@ export function Topbar() {
         {/* Left: Project Switcher & Metadata */}
         <div className="flex items-center gap-2.5 min-w-0">
           {projects.length > 0 ? (
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span
+                className="w-2.5 h-2.5 rounded-full bg-emerald-500 heartbeat-led shrink-0"
+                title="Active Hardware Target: RTOS Scheduler Heartbeat Running"
+              />
               {/* Project Switcher Select */}
               <div className="relative flex items-center">
                 <select

@@ -18,6 +18,7 @@ import { useProject } from "@/components/providers";
 import { formatDate } from "@/lib/utils";
 import { storage } from "@/lib/storage";
 import { StatusPill } from "@/components/monday/status-pill";
+import { OscilloscopeBanner } from "@/components/oscilloscope-banner";
 
 const LIFECYCLE_STAGES = [
   {
@@ -163,6 +164,9 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Embedded Live Signal Telemetry & Oscilloscope Banner */}
+      <OscilloscopeBanner />
 
       {/* 2. Compact 4-Metric Summary Bar (Hairline divided, no card overload) */}
       <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-zinc-200 dark:divide-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">

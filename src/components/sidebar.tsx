@@ -117,13 +117,13 @@ export function Sidebar() {
               <span>Local storage</span>
             </span>
             <span className="flex items-center gap-1 text-[10px] text-zinc-800 dark:text-zinc-200 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 heartbeat-led" />
               Persistent
             </span>
           </div>
         ) : (
           <div className="flex justify-center py-1" title="Local storage (Persistent in this browser)">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 heartbeat-led" />
           </div>
         )}
       </div>
